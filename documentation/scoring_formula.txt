@@ -1,0 +1,148 @@
+╔══════════════════════════════════════════════════════════╗
+║          🧮 SCORING FORMULA - HOW THE FINAL SCORE WORKS   ║
+╚══════════════════════════════════════════════════════════╝
+
+   🐍 Python does ALL of this math. The AI only gives scores.
+   Will be built in: core/scoring.py (Milestone 5)
+
+
+══════════════════════════════════════════════════════════
+ 1️⃣  THE BIG PICTURE
+══════════════════════════════════════════════════════════
+
+   ⭐ FINAL (out of 100)  =  🎯 Role Match (30)  +  📊 Sections (70)
+
+   ┌───────────────┬───────┬───────────────────────────────┐
+   │ Part          │ Marks │ What it checks                │
+   ├───────────────┼───────┼───────────────────────────────┤
+   │ 🎯 Role Match │  30   │ Does the candidate meet HR's  │
+   │               │       │ requirements? (checklist)     │
+   │ 📊 Sections   │  70   │ How GOOD is each part of the  │
+   │               │       │ resume? (7 sections)          │
+   ├───────────────┼───────┼───────────────────────────────┤
+   │ ⭐ Total      │ 100   │                               │
+   └───────────────┴───────┴───────────────────────────────┘
+
+
+══════════════════════════════════════════════════════════
+ 2️⃣  THE WORDS WE USE
+══════════════════════════════════════════════════════════
+
+   ┌────────────┬─────────────────────────────────────────┐
+   │ Word       │ Meaning                                 │
+   ├────────────┼─────────────────────────────────────────┤
+   │ Priority   │ HR picks: Low / Medium / High           │
+   │ Value      │ Low = 5 · Medium = 8 · High = 10        │
+   │            │ = the MAX marks of that section         │
+   │ AI score   │ The AI's number, out of 10              │
+   │ Marks got  │ Value × AI score ÷ 10                   │
+   └────────────┴─────────────────────────────────────────┘
+
+
+══════════════════════════════════════════════════════════
+ 3️⃣  THE FORMULA (3 steps)
+══════════════════════════════════════════════════════════
+
+   STEP 1 → For each section:
+            Marks got = Value × AI score ÷ 10
+
+   STEP 2 → Add up:
+            Total marks got   (all 7 sections)
+            Total max marks   (all 7 values)
+
+   STEP 3 → Scale to 70:
+            📊 Sections = Total marks got ÷ Total max marks × 70
+            🎯 Role Match = AI role score × 3
+            ⭐ FINAL = Sections + Role Match       (out of 100)
+            ⭐ Out of 10 = FINAL ÷ 10
+
+
+══════════════════════════════════════════════════════════
+ 4️⃣  FULL EXAMPLE
+══════════════════════════════════════════════════════════
+
+   ┌────────────────────┬──────────┬───────┬──────────┬──────────────┬───────────┐
+   │ Section            │ Priority │ Value │ AI score │ Calculation  │ Marks got │
+   ├────────────────────┼──────────┼───────┼──────────┼──────────────┼───────────┤
+   │ 💼 Experience      │ High     │  10   │  8 / 10  │ 10 × 8 ÷ 10  │    8.0    │
+   │ 🛠️ Skills          │ High     │  10   │  7 / 10  │ 10 × 7 ÷ 10  │    7.0    │
+   │ 🚀 Projects        │ Medium   │   8   │  9 / 10  │  8 × 9 ÷ 10  │    7.2    │
+   │ 🎓 Education       │ Low      │   5   │  6 / 10  │  5 × 6 ÷ 10  │    3.0    │
+   │ 📄 Formatting      │ Medium   │   8   │  7 / 10  │  8 × 7 ÷ 10  │    5.6    │
+   │ 🧾 Summary         │ Low      │   5   │  5 / 10  │  5 × 5 ÷ 10  │    2.5    │
+   │ 🏅 Certifications  │ Low      │   5   │  6 / 10  │  5 × 6 ÷ 10  │    3.0    │
+   ├────────────────────┼──────────┼───────┼──────────┼──────────────┼───────────┤
+   │ TOTAL              │          │  51   │          │              │   36.3    │
+   └────────────────────┴──────────┴───────┴──────────┴──────────────┴───────────┘
+
+   📊 Sections   = 36.3 ÷ 51 × 70  =  49.8 / 70
+   🎯 Role Match = 7 × 3           =  21.0 / 30
+                                      ──────────
+   ⭐ FINAL                         =  70.8 / 100   →   7.1 / 10
+
+
+══════════════════════════════════════════════════════════
+ 5️⃣  3 QUICK CASES (same candidate, different priorities)
+══════════════════════════════════════════════════════════
+
+   AI scores: Exp 8 · Skills 7 · Projects 9 · Edu 6 ·
+              Format 7 · Summary 5 · Certs 6 · Role Match 7
+
+   ┌────────────────────────┬───────┬──────────┬──────────┬───────┐
+   │ Case                   │ Max   │ Marks got│ Sections │ FINAL │
+   │                        │ marks │          │  (/70)   │ (/10) │
+   ├────────────────────────┼───────┼──────────┼──────────┼───────┤
+   │ A. All High            │  70   │  48.0    │  48.0    │  6.9  │
+   │ B. All Low             │  35   │  24.0    │  48.0    │  6.9  │
+   │ C. Mixed (example ↑)   │  51   │  36.3    │  49.8    │  7.1  │
+   └────────────────────────┴───────┴──────────┴──────────┴───────┘
+
+   ✅ A = B → if all priorities are equal, High or Low
+      doesn't matter
+   ✅ All High → max = 70 → "marks got ÷ 70 × 70" = marks got
+   ✅ C is higher → the candidate is strong where HR said "High"
+
+
+══════════════════════════════════════════════════════════
+ 6️⃣  SPECIAL CASE: N/A SECTION
+══════════════════════════════════════════════════════════
+
+   If a section is N/A (for example no certifications, and the
+   job doesn't need them):
+     → it is LEFT OUT of both "marks got" AND "max marks"
+     → the other sections share the 70 marks
+     → the candidate is NOT punished for a missing section
+
+   Example: Certifications N/A in the table above
+     Marks got = 36.3 − 3.0 = 33.3
+     Max marks = 51 − 5    = 46
+     Sections  = 33.3 ÷ 46 × 70 = 50.7 / 70
+
+
+══════════════════════════════════════════════════════════
+ 7️⃣  WHAT THE LABEL SAYS
+══════════════════════════════════════════════════════════
+
+   ┌──────────────┬───────────────┐
+   │ FINAL (/10)  │ Label         │
+   ├──────────────┼───────────────┤
+   │ 8.5 - 10     │ 🌟 Excellent  │
+   │ 7.0 - 8.4    │ ✅ Strong     │
+   │ 5.5 - 6.9    │ 🟡 Moderate   │
+   │ below 5.5    │ 🔴 Weak       │
+   └──────────────┴───────────────┘
+
+
+══════════════════════════════════════════════════════════
+ 8️⃣  WHO DOES WHAT
+══════════════════════════════════════════════════════════
+
+   🤖 AI      → 7 section scores (1-10) + Role Match score (1-10)
+   🐍 Python  → everything in this file
+   👤 HR      → picks Low / Medium / High, makes the final
+                hiring decision
+
+   Settings in config.py:
+     ROLE_MATCH_MARKS = 30
+     SECTIONS_MARKS   = 70
+     PRIORITY_VALUES  = low 5 · medium 8 · high 10

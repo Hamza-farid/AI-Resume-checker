@@ -1,0 +1,29 @@
+# 🎨 App theme: one light + one dark palette. The ☀️/🌙 switch in the top-right picks between them.
+
+[server]
+maxUploadSize = 10   # MB, same as config.MAX_UPLOAD_MB
+
+[client]
+toolbarMode = "minimal"
+
+[theme.light]
+primaryColor = "#2a78d6"
+backgroundColor = "#f6f6f3"
+secondaryBackgroundColor = "#ffffff"
+textColor = "#0b0b0b"
+borderColor = "#e1e0d9"
+showWidgetBorder = true
+baseRadius = "0.6rem"
+buttonRadius = "0.6rem"
+font = "sans-serif"
+
+[theme.dark]
+primaryColor = "#3987e5"
+backgroundColor = "#101010"
+secondaryBackgroundColor = "#1a1a19"
+textColor = "#f5f5f4"
+borderColor = "#2c2c2a"
+showWidgetBorder = true
+baseRadius = "0.6rem"
+buttonRadius = "0.6rem"
+font = "sans-serif"

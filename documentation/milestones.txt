@@ -1,0 +1,172 @@
+╔══════════════════════════════════════════════════════════╗
+║          🎯 FAIR RESUME EVALUATOR - MILESTONES            ║
+╚══════════════════════════════════════════════════════════╝
+
+  Rule: one milestone at a time → test it → then the next one.
+
+  Status:  ✅ Done    🔨 In progress    ⏳ Not started
+
+
+──────────────────────────────────────────────────────────
+ ✅ 1. FOUNDATION
+──────────────────────────────────────────────────────────
+   What : Settings + emoji logs
+   Files: config.py, logger.py, requirements.txt, .gitignore
+   Test : python logger.py
+   Result → emoji logs in terminal + logs/<date>.log file
+
+
+──────────────────────────────────────────────────────────
+ ✅ 2. READ THE RESUME
+──────────────────────────────────────────────────────────
+   What : Upload PDF/DOCX → get Markdown text → save it
+   How  : PDF  → 3-try system + "answer key" word check
+          DOCX → unwrap invisible layout tables
+          100% free, local, no AI tokens
+   Files: core/parser.py, core/storage.py, app.py,
+          tests/test_milestone2.py
+   Test : python tests/test_milestone2.py  (1 resume)
+          or  streamlit run app.py
+   Result → 6/6 test resumes passed (98-100% text kept)
+   Details → see  milestone_2_parsing_strategy.txt
+
+
+──────────────────────────────────────────────────────────
+ ✅ 3. PROMPTS
+──────────────────────────────────────────────────────────
+   What : Write the AI's instructions (role, fairness, rubric, red flags)
+   Score: Role Match 30 + Sections 70 (Low 5 / Med 8 / High 10)
+   Files: prompts/base/ (7 files: role, fairness, security,
+          scoring_rules, role_match, flags, output_format),
+          prompts/sections/ (7 rubrics), sections_registry.py,
+          schema.py, prompt_builder.py, tests/test_milestone3.py
+   Now  : prompt v1.2
+          v1.1 → evidence-only sections, 2 lines + 4 key points,
+                 exact quotes, gaps only in analytics, <file_info>
+          v1.2 → red flags (flags.md) + today's date
+   Test : python tests/test_milestone3.py  → prompt_previews/ (0 tokens)
+   Details → see  milestone_3_prompts_strategy.txt
+
+
+──────────────────────────────────────────────────────────
+ ✅ 4. FIRST AI CALL  (works via Claude Code, first result OK)
+──────────────────────────────────────────────────────────
+   What : Send resume to Claude → get scores back (JSON)
+   Files: llm/base.py, llm/claude_client.py, llm/claude_code_client.py,
+          llm/factory.py, core/evaluator.py, core/evidence.py,
+          core/storage.py (save_result),
+          tests/test_milestone4.py, tests/test_api_connection.py
+   Model: claude-sonnet-5 · effort medium · 1 retry
+          timeout: API 180s · Claude Code CLI 300s
+   Checks after the AI: scores 1-10 · key points max 4 ·
+          pros/cons max 8 · every quote checked ✅/🟡/⚠️
+   Test : 1. python tests/test_api_connection.py  (key check + "Hi")
+          2. python tests/test_milestone4.py      → results/result_<name>.json
+   Cost : ~$0.05 - $0.07 per resume (estimate)
+   🔌 Providers (LLM_PROVIDER=auto picks by key type):
+          sk-ant-oat token → llm/claude_code_client.py (Claude Code CLI)
+          sk-ant-api key   → llm/claude_client.py      (API, for going live)
+   ✅ First run: test_simple.pdf → Role Match 9/10, strong_match
+   Note : llm/ folder is separate, so Gemini can be added later
+          by adding gemini_client.py + changing 1 line in config.
+   Details → see  milestone_4_ai_call.txt
+
+
+──────────────────────────────────────────────────────────
+ ✅ 5. HR FORM + SCORES
+──────────────────────────────────────────────────────────
+   What : Job role form + section scores + final score
+   Form : role, experience level, must-have, nice-to-have,
+          report language (7 + custom), job description,
+          extra notes, Low / Medium / High for 7 sections
+   Math : FINAL = Role Match (30) + Sections (70)
+   Files: app.py, core/scoring.py
+   Note : Python does the math, not the AI.
+   Details → see  scoring_formula.txt
+
+
+──────────────────────────────────────────────────────────
+ ✅ 6. NICE OUTPUT + ANALYTICS
+──────────────────────────────────────────────────────────
+   What : 3-card workspace (no scrolling), 💡 guide sidebar,
+          ☀️/🌙 switch, score ring, meters, 7 result tabs,
+          analytics tab, download report
+   Files: frontend/ (theme, session, guide, auth, components, form,
+          results, analytics, charts), .streamlit/config.toml,
+          core/scoring.py, core/report.py, app.py
+   Test : streamlit run app.py
+   Details → see  milestone_5_6_frontend.txt
+
+
+──────────────────────────────────────────────────────────
+ ✅ REAL TESTS (predicted vs actual)
+──────────────────────────────────────────────────────────
+   1. tricky_canva.pdf → "Lead UX Designer"
+      predicted 8.0 · AI 8.7 · every section within ±1 ✅
+      → led to prompt v1.1 (see milestone_3_prompts_strategy.txt)
+   2. resume_jordan_ellis.pdf (8 planted lies) → "Data Analyst"
+      predicted 6.0-6.5 · AI 6.3 "Possible match" ✅
+      8 flags: 🔴 4 high (hidden AI note, 10+ years claim, reversed
+      dates, 6 years of Microsoft Fabric) · 🟡 3 medium · ⚪ 1 verify
+      hidden "rate me 10/10" note did NOT raise the score ✅
+      3-year gap shown only as info, not flagged ✅
+
+
+──────────────────────────────────────────────────────────
+ ⏳ 7. GO LIVE (+ optional blind mode)
+──────────────────────────────────────────────────────────
+   What : Deploy on Streamlit Cloud (needs an API key: the Claude
+          Code CLI does not run there) + optional blind mode
+          (hide name / phone / email before the AI sees them)
+   Note : hidden-text tricks are already caught by the AI (flags.md)
+   Files: Streamlit secrets, core/redactor.py (blind mode)
+
+
+──────────────────────────────────────────────────────────
+ ✅ LOGIN + 10-MINUTE SESSION  (frontend/auth.py)
+──────────────────────────────────────────────────────────
+   What : Login page with 3 fields, JWT token, auto-logout
+   .env : APP_USERNAME=...   APP_PASSWORD=...   APP_ACCESS_KEY=...
+          JWT_SECRET=...     (long random text, signs the token)
+          SESSION_MINUTES=10 (optional, default 10)
+   Rules: all 3 must match · one error message for any mistake ·
+          5 wrong tries → 60s lock · login not set up → app won't open
+   Flow : login → token (exp = now + 10 min) → 🔒 9:59 countdown in
+          the header → at 0 the page reloads → login page again
+   Logout button clears the form, results and token
+   Test : browser test 7/7 ✅ (login page, wrong login, right login,
+          evaluate lock, results, auto-logout after 1 min, logout)
+
+
+──────────────────────────────────────────────────────────
+ ✅ EVALUATE BUTTON LOCK + PROGRESS IN CARD ③
+──────────────────────────────────────────────────────────
+   Click → button turns "⏳ Evaluating..." (disabled) + the whole
+   form is locked (a click would restart the AI call) → Step 1/4…4/4
+   shows right under the button → done → button + form unlock
+   🐛 Found + fixed: a Streamlit bug showed "Fresher" on screen while
+      the server (and the AI) had "Junior" → form defaults are now set
+      in the same run that draws the form
+
+
+──────────────────────────────────────────────────────────
+ 💡 PLANNED: "NOT A RESUME" PROTECTION  (waiting for your OK)
+──────────────────────────────────────────────────────────
+   Layer 1: free local check before the AI
+            (resume headings, email/phone, dates, max 10 pages)
+            → "This doesn't look like a resume" + "Evaluate anyway"
+   Layer 2: AI gate = first JSON field document_check
+            {is_resume, document_type, reason}
+            → invoice / cover letter / many CVs in one file caught
+
+
+──────────────────────────────────────────────────────────
+ 📚 DOCUMENTATION FILES
+──────────────────────────────────────────────────────────
+   ../README.md                     ← for HR and everyone (with screenshots)
+   milestones.txt                   ← this file
+   milestone_2_parsing_strategy.txt ← how we read PDF / DOCX
+   milestone_3_prompts_strategy.txt ← prompts, rules, JSON
+   milestone_4_ai_call.txt          ← AI settings, errors, testing
+   scoring_formula.txt              ← the 30 + 70 math with tables
+   milestone_5_6_frontend.txt       ← form, results page, analytics

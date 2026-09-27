@@ -1,0 +1,17 @@
+# Secrets - never commit these
+.env
+.streamlit/secrets.toml
+
+# Logs
+logs/
+
+# Processed resumes (real candidate data - keep private)
+processed/
+prompt_previews/
+results/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

@@ -1,0 +1,239 @@
+╔══════════════════════════════════════════════════════════╗
+║      📄 MILESTONE 2 - HOW WE READ RESUMES (STRATEGY)      ║
+╚══════════════════════════════════════════════════════════╝
+
+   Status: ✅ DONE  (tested on 6 resumes, all passed)
+
+
+══════════════════════════════════════════════════════════
+ 1️⃣  THE BIG IDEA
+══════════════════════════════════════════════════════════
+
+   We turn every resume into MARKDOWN text.
+   100% FREE, runs on our own machine, NO AI tokens used.
+
+   Why Markdown?
+     ✅ Headings stay headings   (#, ##, **bold**)
+     ✅ Tables stay tables       (| a | b |)
+     ✅ Bullets stay bullets     (-)
+     ✅ Images are removed
+     ✅ Claude reads Markdown very well
+     ✅ HR can also read it easily
+
+
+══════════════════════════════════════════════════════════
+ 2️⃣  THE FLOW
+══════════════════════════════════════════════════════════
+
+   📄 PDF  ──► 3-try system (PyMuPDF4LLM) ─────────┐
+                                                   ├──► Markdown text
+   📝 DOCX ──► mammoth → unwrap → MarkItDown ──────┘         │
+                                                             ├──► 💾 processed/<date>_<name>.md
+                                                             │      (you check it)
+                                                             │
+                                                             └──► 🤖 Claude  (Milestone 4)
+
+   ⭐ The saved .md file = EXACTLY what Claude will read.
+      Claude gets the TEXT, not the file.
+
+
+══════════════════════════════════════════════════════════
+ 3️⃣  WHY ONE METHOD IS NOT ENOUGH
+══════════════════════════════════════════════════════════
+
+   Every resume is built differently. No single method
+   works on all of them:
+
+   ┌──────────────┬──────────┬──────────┬──────────┐
+   │ Resume type  │ Method 1 │ Method 2 │ Method 3 │
+   ├──────────────┼──────────┼──────────┼──────────┤
+   │ Simple       │    ✅    │    ✅    │    ✅    │
+   │ With table   │    ✅    │ ❌ table │    ✅    │
+   │              │          │   flat   │          │
+   │ 2 columns    │    ✅    │    ✅    │ ❌ mixed │
+   │ Canva design │ ❌ text  │    ✅    │ ❌ mixed │
+   │              │   lost   │          │          │
+   └──────────────┴──────────┴──────────┴──────────┘
+
+   So we try them IN ORDER and check each one.
+
+
+══════════════════════════════════════════════════════════
+ 4️⃣  THE 3 PDF METHODS (all inside PyMuPDF4LLM)
+══════════════════════════════════════════════════════════
+
+   🔑 METHOD 1 - "Classic"
+      Code : pymupdf_rag.to_markdown(doc, write_images=False)
+      Does : finds columns first, reads each top → bottom,
+             turns lined tables into Markdown tables
+      ✅ Best for: simple, table, 2-column resumes
+      ❌ Weak   : skips text inside grey / coloured boxes
+                  (thinks the box is a picture)
+
+   🔑 METHOD 2 - "Classic, ignore boxes"
+      Code : pymupdf_rag.to_markdown(doc, write_images=False,
+                                     ignore_graphics=True)
+      Does : same as Method 1 but ignores ALL drawings
+      ✅ Best for: Canva / designer resumes with boxes
+      ❌ Weak   : tables become plain lines (text still there)
+
+   🔑 METHOD 3 - "Layout"  (last backup)
+      Code : pymupdf4llm.to_markdown(doc, write_images=False,
+                                     use_ocr=False)
+      Does : small local AI model guesses the page layout
+      ✅ Good  : never drops text
+      ❌ Weak   : can mix sidebar with main content
+      → Only used if Method 1 and 2 both fail.
+      → Shows ⚠️ "please check this one" in logs.
+
+
+══════════════════════════════════════════════════════════
+ 5️⃣  THE MAGIC: "ANSWER KEY" + WORD COUNTING
+══════════════════════════════════════════════════════════
+
+   📋 ANSWER KEY
+      Code : page.get_text()
+      Gives every word in the PDF (no order, no formatting).
+      Never skips a word → like a teacher's answer sheet.
+
+   🧮 CHECK EACH METHOD
+      Count every word in the answer key and in the method's
+      result (Python "Counter"), then compare:
+
+         text kept % = words found ÷ words in answer key
+
+   📏 THE RULE
+      Try Method 1 → 2 → 3 in this order.
+      The FIRST one that keeps ≥ 97% of the words WINS. 🏆
+      If none reaches 97% → use the best one + ⚠️ warning.
+
+   ⚙️ Setting: MIN_TEXT_COVERAGE = 97.0  (in core/parser.py)
+
+
+══════════════════════════════════════════════════════════
+ 6️⃣  REAL EXAMPLE: tricky_canva.pdf
+══════════════════════════════════════════════════════════
+
+   Answer key  : 371 words
+
+   🔍 Method 1 (classic)       →  67% kept  ❌ → try next
+   🔍 Method 2 (ignore boxes)  →  99% kept  ✅ → CHOSEN
+      Method 3 (layout)        →  not needed
+
+   Why Method 1 failed:
+      ┌──────────────────────────┐
+      │ ░░░ grey box ░░░░░░░░░░░ │ ← "Lead UX Designer, Shopify"
+      └──────────────────────────┘    + all 3 Selected Projects
+      Method 1 thought the box was a picture → skipped text.
+      Method 2 ignored the box → text came back.
+
+
+══════════════════════════════════════════════════════════
+ 7️⃣  DOCX: THE "INVISIBLE TABLE" FIX
+══════════════════════════════════════════════════════════
+
+   Many Word resumes fake 2 columns with a hidden table:
+
+      ┌── left cell ───┬── right cell ────┐
+      │ Name, Contact  │ Profile          │
+      │ Skills         │ Experience       │
+      └────────────────┴──────────────────┘
+
+   ❌ Before: each cell became ONE very long line.
+
+   ✅ Now, for every table we ask:
+      "Does a cell have 3+ headings/bullets OR 200+ letters?"
+
+      YES → layout table  → remove the table, write the
+                            left column fully, then the right
+      NO  → real table    → keep it as a table
+                            (e.g. "47+ Projects | 8 Years")
+
+   Steps:
+      Word → HTML (mammoth) → unwrap layout tables
+           → Markdown (MarkItDown)
+
+   Answer key for DOCX = mammoth.extract_raw_text()
+
+
+══════════════════════════════════════════════════════════
+ 8️⃣  TEST RESULTS (6 resumes)
+══════════════════════════════════════════════════════════
+
+   ┌──────────────────────┬──────────────────────┬──────┐
+   │ File                 │ Method used          │ Kept │
+   ├──────────────────────┼──────────────────────┼──────┤
+   │ test_simple.pdf      │ Method 1             │  98% │
+   │ test_table.pdf       │ Method 1 (+1 table)  │ 100% │
+   │ test_two_column.pdf  │ Method 1             │ 100% │
+   │ tricky_canva.pdf     │ Method 2             │  99% │
+   │ test_resume.docx     │ MarkItDown           │ 100% │
+   │ tricky_sidebar.docx  │ MarkItDown + unwrap  │ 100% │
+   └──────────────────────┴──────────────────────┴──────┘
+
+
+══════════════════════════════════════════════════════════
+ 9️⃣  SAFETY CHECKS IN THE APP
+══════════════════════════════════════════════════════════
+
+   ❌ Not PDF / DOCX        → "Only PDF and DOCX supported"
+   ❌ Bigger than 10 MB     → "File too big"
+   ❌ Password PDF          → "Please upload unlocked copy"
+   ❌ Scanned PDF (no text) → "Probably a scanned image"
+   ❌ Broken file           → "File could not be opened"
+   ⚠️ Under 97% text kept   → "please check this one"
+
+
+══════════════════════════════════════════════════════════
+ 🔟  HOW TO TEST
+══════════════════════════════════════════════════════════
+
+   1. Put resumes in:  tests/milestone 2 resume pdfs/
+   2. Open tests/test_milestone2.py and change:
+         RESUME_NAME = "your_file.pdf"
+   3. Run:  python tests/test_milestone2.py
+   4. Check the new .md file in processed/
+
+   Or use the app:  streamlit run app.py
+
+
+══════════════════════════════════════════════════════════
+ ⚠️  THINGS TO REMEMBER
+══════════════════════════════════════════════════════════
+
+   📊 "100% text kept" = no word was LOST.
+      It does NOT check the ORDER. Order is correct because
+      Methods 1 & 2 detect columns. For very strange designs,
+      still look at the .md file once.
+
+   📁 processed/ has REAL candidate data
+      → it is in .gitignore (never goes to GitHub)
+
+   ☁️ On Streamlit Cloud, saved files get deleted when the
+      app restarts. Fine for testing. Later → database.
+
+   📦 DOCX needs:  pip install "markitdown[docx]"
+
+   ⚖️ PyMuPDF license = AGPL
+      → Fine for internal company use.
+      → If the company SELLS this app: buy a license or
+        switch tools.
+
+   🔄 Future upgrades (only if real resumes still fail):
+      • Docling (IBM, free, local, heavy) as Method 4
+      • Azure Document Intelligence (paid, reads scans)
+
+
+══════════════════════════════════════════════════════════
+ 📜  HISTORY (what we tried and why we changed)
+══════════════════════════════════════════════════════════
+
+   1. PyMuPDF4LLM default "layout" mode
+      → ❌ mixed up 2-column resume (Grubhub job ended up
+        under CERTIFICATIONS)
+   2. Switched to "classic" mode
+      → ✅ 2-column fixed, ❌ Canva lost 33% of text
+   3. Built the 3-try system + answer-key check
+      → ✅ all 6 test resumes pass
+   4. DOCX sidebar came out as one long line
+      → ✅ fixed with the invisible-table unwrap

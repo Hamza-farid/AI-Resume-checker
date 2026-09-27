@@ -1,0 +1,213 @@
+╔══════════════════════════════════════════════════════════╗
+║          🤖 MILESTONE 4 - THE FIRST REAL AI CALL          ║
+╚══════════════════════════════════════════════════════════╝
+
+   Status: ✅ DONE · runs through the Claude Code CLI (sk-ant-oat token)
+           on your laptop; going live needs an API key (section 0️⃣)
+   ⚠️ This milestone uses real tokens (real money).
+
+
+══════════════════════════════════════════════════════════
+ 0️⃣  ⚠️ API KEY vs CLAUDE CODE TOKEN  (our first blocker)
+══════════════════════════════════════════════════════════
+
+   ┌────────────────┬──────────────────────┬─────────────────────┐
+   │                │ ✅ API key            │ ❌ OAuth token       │
+   ├────────────────┼──────────────────────┼─────────────────────┤
+   │ Starts with    │ sk-ant-api...        │ sk-ant-oat...       │
+   │ Made by        │ console.anthropic.com│ `claude setup-token`│
+   │                │ → API Keys           │                     │
+   │ Meant for      │ YOUR apps (this one) │ Claude Code only    │
+   │ Billing        │ pay per token        │ your subscription   │
+   │ Works here?    │ ✅ Yes                │ ❌ No (401 error)    │
+   └────────────────┴──────────────────────┴─────────────────────┘
+
+   What happened: .env had an sk-ant-oat token
+                  → Claude API said 401 "API key is invalid"
+
+   Fix: 1. console.anthropic.com → API Keys → Create Key
+        2. .env →  claude=sk-ant-api...
+        3. python tests/test_api_connection.py → should say ✅
+
+   🛡️ The app now detects an sk-ant-oat token and shows a clear
+      message instead of a confusing 401.
+
+   🔌 tests/test_api_connection.py
+      Step 1: checks key TYPE (never prints the key)
+      Step 2: sends "Hi" → prints Claude's reply (almost free)
+
+
+══════════════════════════════════════════════════════════
+ 1️⃣  FOLDER STRUCTURE
+══════════════════════════════════════════════════════════
+
+   llm/                        ← all AI code lives here
+   ├── base.py                 → rules every AI client follows
+   ├── claude_client.py        → Claude code ONLY here
+   ├── factory.py              → picks the AI from config
+   └── (later) gemini_client.py
+
+   core/
+   ├── evaluator.py            → joins everything for 1 resume
+   └── storage.py              → saves .md and .json files
+
+   results/                    ← AI answers saved here (JSON)
+   tests/test_milestone4.py    → 1 resume, real AI call
+
+
+══════════════════════════════════════════════════════════
+ 2️⃣  THE FLOW
+══════════════════════════════════════════════════════════
+
+   📄 resume ─► parser (M2) ─► Markdown
+   📋 HR form ─► validate_job (M3)
+                       │
+                       ▼
+             prompt_builder (M3) ─► system + user message
+                       │
+                       ▼
+       llm/factory ─► claude_client ─► 🤖 Claude Sonnet 5
+                       │
+                       ▼
+             JSON answer (API forces the shape)
+                       │
+                       ▼
+       🔧 Python check: every score 1-10? N/A = 0?
+                       │
+                       ▼
+       💾 results/result_<name>.json  +  📝 log: tokens, cost
+
+   One resume at a time. No bulk.
+
+
+══════════════════════════════════════════════════════════
+ 3️⃣  SWITCH TO GEMINI (future)
+══════════════════════════════════════════════════════════
+
+   1. Add llm/gemini_client.py  (same generate_json function)
+   2. Add 2 lines in llm/factory.py
+   3. config / .env:  LLM_PROVIDER = "gemini"
+   → Rest of the app does not change at all ✅
+
+
+══════════════════════════════════════════════════════════
+ 4️⃣  ALL SETTINGS  (config.py, can be changed from .env)
+══════════════════════════════════════════════════════════
+
+   ┌────────────────────┬───────────────────┬──────────────────────────┐
+   │ Setting            │ Value             │ Why                      │
+   ├────────────────────┼───────────────────┼──────────────────────────┤
+   │ LLM_PROVIDER       │ claude            │ which AI                 │
+   │ CLAUDE_MODEL       │ claude-sonnet-5   │ your choice              │
+   │ CLAUDE_EFFORT      │ medium            │ how deeply it thinks     │
+   │                    │                   │ (low/medium/high)        │
+   │ CLAUDE_MAX_TOKENS  │ 32000             │ upper limit; bill only   │
+   │                    │                   │ for real tokens          │
+   │ CLAUDE_TIMEOUT_SEC │ 180               │ 3 min per try            │
+   │ CLAUDE_MAX_RETRIES │ 1                 │ retry busy/server/net    │
+   │                    │                   │ errors once              │
+   │ PRICE_INPUT_PER_M  │ 2.0               │ $ per 1M input tokens    │
+   │ PRICE_OUTPUT_PER_M │ 10.0              │ $ per 1M output tokens   │
+   └────────────────────┴───────────────────┴──────────────────────────┘
+
+   Fixed in code (claude_client.py):
+     thinking = adaptive       → AI decides how much to think
+     format   = JSON schema    → API forces the answer shape
+     cache    = system prompt  → repeat calls are cheaper
+     streaming = on            → no timeout issues on long answers
+
+   ⏱️ Worst case wait = 180s × 2 tries = 6 min
+
+
+══════════════════════════════════════════════════════════
+ 5️⃣  WHAT WE DON'T SEND (and why)
+══════════════════════════════════════════════════════════
+
+   ❌ temperature / top_p / top_k → removed on Sonnet 5 (error)
+   ❌ thinking budget_tokens       → old way (error)
+   ❌ assistant prefill            → not allowed (error)
+
+   Consistency comes from instead:
+     📏 fixed rubric  🧩 JSON schema  🔢 whole numbers
+     🧠 evidence first, score last
+
+
+══════════════════════════════════════════════════════════
+ 6️⃣  ERROR HANDLING  (every risky step is in try/except)
+══════════════════════════════════════════════════════════
+
+   ┌──────────────────────┬──────────────────────────────────┐
+   │ What happened        │ User sees                        │
+   ├──────────────────────┼──────────────────────────────────┤
+   │ 🔑 Wrong API key      │ "API key is invalid"             │
+   │ 🚫 No permission      │ "Key not allowed for this model" │
+   │ 🔎 Wrong model name   │ "Model not found"                │
+   │ ⏳ Too many requests  │ "Wait a minute, try again"       │
+   │ 🧾 Bad request        │ "Request rejected, see logs"     │
+   │ ⌛ Timeout            │ "AI took too long"               │
+   │ 📡 No internet        │ "Could not reach Claude"         │
+   │ 🌩️ Server error       │ "Claude API error (code)"        │
+   │ 🛑 AI refused         │ "AI declined this resume"        │
+   │ ✂️ Answer cut off     │ "Increase CLAUDE_MAX_TOKENS"     │
+   │ 🧩 Broken JSON        │ "Answer not valid JSON"          │
+   │ 💥 Anything else      │ "Unexpected error, see logs"     │
+   └──────────────────────┴──────────────────────────────────┘
+
+   Full technical details always go to the logs.
+
+
+══════════════════════════════════════════════════════════
+ 7️⃣  SCORE CHECK  (API guarantees shape, NOT the range)
+══════════════════════════════════════════════════════════
+
+   Role Match 12  →  10   🔧 logged
+   Skills     -3  →   1   🔧 logged
+   N/A section 5  →   0   🔧 logged
+   (tested with fake data ✅)
+
+
+══════════════════════════════════════════════════════════
+ 8️⃣  WHAT GETS LOGGED FOR EVERY CALL
+══════════════════════════════════════════════════════════
+
+   🤖 Sending to claude-sonnet-5 | effort=medium | timeout=180s   (Claude Code CLI: 300s)
+   📊 Done in 42s | stop=end_turn | in=6,210 out=4,830
+      cache_read=3,900 | ~$0.061 | request_id=req_01...
+
+   request_id → give this to Anthropic support if needed
+   cache_read → if always 0, caching is not working
+
+
+══════════════════════════════════════════════════════════
+ 9️⃣  THE SAVED JSON  (results/result_<name>.json)
+══════════════════════════════════════════════════════════
+
+   {
+     "meta": { model, effort, prompt version + fingerprint,
+               time, tokens, cost, request_id, score fixes },
+     "job":  { the HR form },
+     "evaluation": { the AI's full answer }
+   }
+
+
+══════════════════════════════════════════════════════════
+ 🔟  HOW TO TEST
+══════════════════════════════════════════════════════════
+
+   1. pip install anthropic   (only once)
+   2. python tests/test_api_connection.py   (key works? ✅)
+   3. Open tests/test_milestone4.py → change RESUME_NAME / JOB
+   4. python tests/test_milestone4.py
+   5. Read scores in the terminal
+   6. Open results/result_<name>.json for the full answer
+      (same resume again → file is overwritten)
+
+   💰 ~$0.05 - $0.07 per run (estimate)
+
+
+══════════════════════════════════════════════════════════
+ 🔮  LATER
+══════════════════════════════════════════════════════════
+
+   🧪 Consistency test: same resume 3× → scores within ±1
+   📦 Batch API: many resumes at once, ~50% cheaper, slower

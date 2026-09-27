@@ -1,0 +1,179 @@
+╔══════════════════════════════════════════════════════════╗
+║   🖥️ MILESTONE 5 + 6 - FRONTEND (FORM, SCORES, ANALYTICS)  ║
+╚══════════════════════════════════════════════════════════╝
+
+   Status: ✅ DONE · tested in a real browser + 2 real AI runs
+           (Canva resume, Jordan resume with 8 planted lies)
+           + login page, 10-min session, evaluate lock (see milestones.txt)
+   Run:    streamlit run app.py
+
+
+══════════════════════════════════════════════════════════
+ 1️⃣  FOLDER STRUCTURE
+══════════════════════════════════════════════════════════
+
+   app.py                    ← entry point: joins everything
+   .streamlit/config.toml    ← light + dark color palettes
+   frontend/
+   ├── theme.py              → ☀️/🌙 switch + all CSS + colors
+   ├── session.py            → keeps form + results across reload
+   ├── guide.py              → 💡 Guide in the left sidebar (Option B)
+   ├── components.py         → HTML blocks: ring, meters, pills,
+   │                           cards (all AI text escaped 🛡️)
+   ├── form.py               → the 3 workspace cards
+   ├── results.py            → hero + 7 tabs + downloads
+   ├── analytics.py          → 📈 Analytics tab
+   └── charts.py             → timeline + skills charts (Altair)
+   core/
+   ├── scoring.py            → the 30 + 70 math
+   └── report.py             → downloadable .md report
+
+
+══════════════════════════════════════════════════════════
+ 2️⃣  THE PAGE (everything important above the fold)
+══════════════════════════════════════════════════════════
+
+   ┌─────────┬ 🎯 Fair Resume Evaluator [AI AGENT] ──── ☀️ │ 🌙 ┐
+   │ 💡 GUIDE │ ① Job (🎯 30)  │ ② Matters (📊 70) │ ③ Resume  │
+   │ ▾ How    │ 🎯 role         │ 💼 Experience LMH │ 📤 Upload │
+   │ ▸ Score  │ 📅 level        │ 🛠️ Skills     LMH │ 🔍 Eval   │
+   │ ▸ Fair   │ 🌐 language     │ 🚀 Projects   LMH │ 🗑️ Clear  │
+   │ ▸ Get    │ ✅ must (chips) │ ... 7 rows + pts  │           │
+   │ [«]      │ ➕ nice · 📋 JD │                   │           │
+   │          ├────────────────────────────────────────────┤
+   │          │ ⭕ 8.5/10 ring · pills · summary · 30/70 bars │
+   │          │ 📊 │ 🎯 │ 💪 │ 💬 │ 📈 │ 🚩 │ 🔎  · 📥 .md · 🧩 .json │
+   └─────────┴────────────────────────────────────────────┘
+   « closes the guide → the 3 cards get the full width
+
+   ✨ After "Evaluate" the page scrolls to the results by itself
+
+
+══════════════════════════════════════════════════════════
+ 3️⃣  ☀️/🌙 THEME SWITCH - how it works
+══════════════════════════════════════════════════════════
+
+   The switch is a PLAIN BROWSER BUTTON, not a Streamlit widget.
+
+   1. HR clicks 🌙
+   2. session.py already saved form + results (end of every run)
+   3. a tiny script stores "Dark" in the browser + reloads
+   4. Streamlit opens in dark → session restored → nothing lost
+
+   🐛 Bug we fixed: "card ③ loads late after switching"
+      Cause: the old switch was a Streamlit widget → clicking it
+             re-ran Python on the OLD page while the reload was
+             starting → the run was cut off before card ③ →
+             card ③ stayed empty until the new page loaded
+      Fix:   plain button → no Python re-run on click
+      Proof: 3 switches in a row → 1 run each, uploader shows
+             0.01-0.02s after the role box; full page at 0.3s
+
+   Tested in a real browser (Edge):
+     background  rgb(246,246,243) → rgb(16,16,16) ✅
+     typed role "Data Analyst" still there after the switch ✅
+
+   Note: the uploaded file itself is not kept after a reload
+         (browsers don't allow it). The results ARE kept.
+
+
+══════════════════════════════════════════════════════════
+ 3️⃣➕ CLEAN PAGE + 💡 GUIDE SIDEBAR  (Option B - chosen by you)
+══════════════════════════════════════════════════════════
+
+   History: v1 info on the page → too much · Option A popup →
+            you switched to Option B (sidebar)
+
+   💡 SIDEBAR (frontend/guide.py) - kept short
+      tagline
+      ▾ 🔄 How it works        (open)   4 one-line steps
+      ▸ ⭐ How the score is made        30 + 70, N/A rule
+      ▸ ⚖️ Fairness rules
+      ▸ ✨ What you get
+      « closes it → cards get the full width
+
+   Layout fixes for the narrower page (sidebar open):
+      sidebar 270px while open · short names (ATS format,
+      Certificates) · level + language stacked · pts as numbers
+
+   Rename the product: APP_NAME / APP_TAGLINE in config.py
+   ⏳ While evaluating: Step 1/4 … 4/4
+
+
+══════════════════════════════════════════════════════════
+ 3️⃣➕ BUG FIX: "Evaluate button stays disabled"
+══════════════════════════════════════════════════════════
+
+   Cause: a role typed WITHOUT pressing Enter is not sent to
+          Python yet → Python thought "no role" → button disabled
+   Fix:   button turns on as soon as a file is uploaded;
+          the role is checked AFTER the click (the click sends
+          the typed role along) → no role = clear warning
+   Browser test (real parser + scoring, saved AI answer):
+      no file → disabled ✅ · file → enabled ✅ ·
+      click without role → warning ✅ · role typed (no Enter)
+      + click → results ✅
+
+   ⏱️ Claude Code timeout is now its own setting:
+      CLAUDE_CODE_TIMEOUT_SEC = 300 (API stays 180)
+
+
+══════════════════════════════════════════════════════════
+ 4️⃣  SMART FORM DETAILS
+══════════════════════════════════════════════════════════
+
+   ✅ Skills = chips → type + Enter, or pick from suggestions
+   🌐 Language → pick from 7, or type your own
+   ⚖️ Low / Medium / High = one click, live "pts" next to each
+      (clicking the selected one again keeps it selected)
+   📋 Job description + notes live in a small pop-up
+      ("· 1 added" shows when filled)
+   🔍 Evaluate → only active when role + resume are there
+
+
+══════════════════════════════════════════════════════════
+ 5️⃣  RESULTS PAGE
+══════════════════════════════════════════════════════════
+
+   HERO   ⭕ score ring · 🌟 label · 🧭 AI advice · 85.4/100
+          headline + summary · 🎯 Role x/30 bar · 📊 Sections x/70 bar
+
+   TABS
+   📊 Scores      → 7 meters (name · priority · bar · score · pts)
+                    + formula box + "why?" with evidence quotes
+   🎯 Role Match  → 3 KPI tiles + experience fit pill
+                    + ✅🟡❌ skill pills + proof table
+   💪 Pros & Cons → green / yellow cards
+   💬 Interview   → numbered cards + why to ask
+   📈 Analytics   → 5 KPI tiles + timeline + skills chart
+                    + education / certs / languages / gaps
+   🚩 Flags       → red cards (cheating, dates) + fairness notes
+   🔎 Audit       → time, cost, tokens, text read %, model,
+                    prompt version, exact text the AI read
+
+   ⚡ Change a priority → score updates instantly, no AI call
+
+
+══════════════════════════════════════════════════════════
+ 6️⃣  CHECKS DONE (no AI call)
+══════════════════════════════════════════════════════════
+
+   ✅ Offline app test: empty page · results · priority change ·
+      reload with same sid → 0 exceptions, 0 errors, 0 warnings
+   ✅ Real browser screenshots: light + dark, form, results,
+      role match, analytics
+   ✅ Fixed during testing:
+      • priority buttons wrapped to 2 lines → short names
+      • score ring missing (st.html removes SVG) → CSS ring
+      • charts collapsed into one row → fixed per-row height
+
+
+══════════════════════════════════════════════════════════
+ 7️⃣  TIPS
+══════════════════════════════════════════════════════════
+
+   ⏱️ Claude Code can take 1-4 minutes per resume.
+      Its timeout is 300s by default (CLAUDE_CODE_TIMEOUT_SEC in .env)
+
+   🔌 Which AI? LLM_PROVIDER=auto (default)
+      sk-ant-oat token → Claude Code · sk-ant-api key → API
