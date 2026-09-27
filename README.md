@@ -66,57 +66,42 @@ A score out of 10, a label (🌟 Excellent → 🔴 Weak), the AI's advice, a tw
 
 ### Seven tabs with every detail
 
-| Tab | What it shows |
-|---|---|
-| 📊 **Scores** | 7 section scores, the points each one earned, the formula, and the quoted evidence behind every score |
-| 🎯 **Role Match** | Every must-have skill: ✅ found · 🟡 partial · ❌ missing, with proof, plus the experience-level check |
-| 💪 **Pros & Cons** | The main strengths and weak spots |
-| 💬 **Interview** | Questions to ask, and why |
-| 📈 **Analytics** | Career timeline, gaps (info only), proven vs only-listed skills, how many achievements have numbers |
-| 🚩 **Flags** | Possible lies or tricks, sorted by risk, each with a quote and a question to ask |
-| 🔎 **Audit** | Model, prompt version, time, and the exact text the AI read, so any decision can be explained |
+Below the headline, the report opens into 7 tabs. Here is what each one looks like with a real resume:
 
-<details>
-<summary>📊 <b>Scores tab</b>: every score and the math behind it (click to open)</summary>
+#### 📊 Scores: every score and the math behind it
+7 section scores, the points each one earned, the final-score formula, and the quoted evidence behind every score (✅ found in the resume · 🟡 close · ⚠️ not found).
 
 <img src="assets/AI%20report-1.png" alt="Scores tab with section scores and the final-score formula" width="100%">
-</details>
 
-<details>
-<summary>🎯 <b>Role Match tab</b>: your requirements checklist</summary>
+#### 🎯 Role Match: your requirements checklist
+Every must-have and nice-to-have skill: ✅ found · 🟡 partial · ❌ missing, with proof, plus the experience-level check.
 
 <img src="assets/AI%20report-2.png" alt="Role Match tab with must-have and nice-to-have skills and proof" width="100%">
-</details>
 
-<details>
-<summary>💪 <b>Pros & Cons tab</b></summary>
+#### 💪 Pros & Cons: strengths and weak spots
+The candidate's main strengths and the things to be careful about, in short points.
 
 <img src="assets/AI%20report-3.png" alt="Strengths and weak spots" width="100%">
-</details>
 
-<details>
-<summary>💬 <b>Interview tab</b>: questions made for this candidate</summary>
+#### 💬 Interview: questions made for this candidate
+Ready-to-ask questions aimed at the weakest or least clear parts of the resume, and why each one matters.
 
 <img src="assets/AI%20report-4.png" alt="Suggested interview questions with reasons" width="100%">
-</details>
 
-<details>
-<summary>📈 <b>Analytics tab</b>: timeline, skills, education, gaps</summary>
+#### 📈 Analytics: the resume in numbers and charts
+Career timeline, time per role, gaps (info only, never punished), proven vs only-listed skills, achievements with numbers, education, certificates and languages.
 
 <img src="assets/AI%20report-5.png" alt="Analytics with KPI tiles, career timeline and skills chart" width="100%">
-</details>
 
-<details>
-<summary>🚩 <b>Flags tab</b>: possible lies and tricks</summary>
+#### 🚩 Flags: possible lies and tricks
+Sorted by risk (🔴 high · 🟡 medium · ⚪ verify). Each flag shows the exact quote, what doesn't add up, and a polite question to ask.
 
 <img src="assets/AI%20report-6.png" alt="Red flags sorted by risk with quotes and interview questions" width="100%">
-</details>
 
-<details>
-<summary>🔎 <b>Audit tab</b>: everything that went into the score</summary>
+#### 🔎 Audit: everything that went into the score
+Time, tokens, cost, model, prompt version, and the exact text the AI read, so any decision can be explained later.
 
 <img src="assets/AI%20report-7.png" alt="Audit tab with time, tokens, model and prompt version" width="100%">
-</details>
 
 ---
 
@@ -182,11 +167,9 @@ We wrote down our own expected scores **before** running the AI, then compared (
 | Designer resume (Canva, 2 pages, sidebar) for *Lead UX Designer* | 8.0 | 8.7 | ✅ Every section within 1 point |
 | Resume with 8 planted lies for *Data Analyst* | 6.0-6.5 | 6.3 | ✅ All high-risk tricks caught |
 
-<details>
-<summary>🎨 See the Canva designer resume result (8.7 / 10)</summary>
+**🎨 The Canva designer resume result (8.7 / 10):**
 
 <img src="assets/AI%20output%20Result.png" alt="Full result for the Canva designer resume: 8.7 out of 10, Excellent, Strong match" width="100%">
-</details>
 
 What we learned from the first test made the tool better: section feedback became evidence-only, quotes are now checked word for word, and gaps can no longer appear in the weak spots.
 
